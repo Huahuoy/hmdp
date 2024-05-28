@@ -2,10 +2,9 @@ package com.hmdp;
 
 import cn.hutool.json.JSONUtil;
 import com.hmdp.entity.Shop;
-import com.hmdp.service.IShopService;
 import com.hmdp.service.impl.ShopServiceImpl;
 import com.hmdp.utils.CacheClient;
-import com.hmdp.utils.RedisConstants;
+import com.hmdp.constants.RedisConstants;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
