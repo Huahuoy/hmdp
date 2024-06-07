@@ -1,11 +1,9 @@
 package com.hmdp.listener;
 
+import com.hmdp.dto.PayOrderDTO;
 import com.hmdp.entity.VoucherOrder;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
-
-import com.hmdp.service.IVoucherService;
-import com.hmdp.utils.RabbitMqHelper;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
@@ -17,23 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.hmdp.constants.MqConstants.*;
 
 @Component
-public class SecKillOrderListener {
+public class PayOrderListener {
+
     @Autowired
-    private IVoucherOrderService vorderService;
-    @Autowired
-    private ISeckillVoucherService seckillVoucherService;
+    private IVoucherOrderService voucherOrderService;
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(name = SECKILL_QUEUE, durable = "true"),
-            exchange = @Exchange(name = SECKILL_EXCHANGE),
-            key = SECKILL_KEY
+            value = @Queue(name = PAY_ORDER_QUEUE_NAME, durable = "true"),
+            exchange = @Exchange(name = PAY_ORDER_EXCHANGE),
+            key = PAY_ORDER_KEY
     ))
     @Transactional
-    public void secKillOrderListener(VoucherOrder voucherOrder){
-
-        vorderService.save(voucherOrder);
-
-        seckillVoucherService.update().setSql("stock = stock - 1")
-                .eq("voucher_id",voucherOrder.getVoucherId()).update();
+    public void secKillOrderListener(PayOrderDTO dto){
+        voucherOrderService.markOrderPaySuccess(dto);
     }
 }

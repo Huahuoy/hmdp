@@ -36,12 +36,11 @@ import static com.hmdp.constants.RedisConstants.FEED_KEY;
 @Slf4j
 public class BlogController {
 
-    @Resource
-    private IBlogService blogService;
-    @Resource
-    private IUserService userService;
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private IBlogService blogService;
+    @Autowired
+    private IUserService userService;
+
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
@@ -58,10 +57,10 @@ public class BlogController {
     @GetMapping("/of/me")
     public Result queryMyBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         // 获取登录用户
-        UserDTO user = UserHolder.getUser();
+        Long userId = UserHolder.getUser().getId();
         // 根据用户查询
         Page<Blog> page = blogService.query()
-                .eq("user_id", user.getId()).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+                .eq("user_id", userId).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 获取当前页数据
         List<Blog> records = page.getRecords();
         return Result.ok(records);

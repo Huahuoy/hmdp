@@ -38,18 +38,16 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Autowired
     private CacheClient cacheClient;
     @Autowired
-    private IShopService shopService;
-    @Autowired
     private StringRedisTemplate redisTemplate;
     @Override
     public Result getByIdWithCache(Long id) {
         //TODO 缓存穿透
-//        Shop shop = cacheClient.querywithPassThrough(CACHE_SHOP_KEY, id, Shop.class,
-//                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
+        Shop shop = cacheClient.querywithPassThrough(CACHE_SHOP_KEY, id, Shop.class,
+                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
 
         //TODO 互斥锁解决缓存击穿
-        Shop shop = cacheClient.querywithMutex(CACHE_SHOP_KEY, id, Shop.class,
-                this::getById, CACHE_SHOP_TTL, TimeUnit.SECONDS);
+//        Shop shop = cacheClient.querywithMutex(CACHE_SHOP_KEY, id, Shop.class,
+//                this::getById, CACHE_SHOP_TTL, TimeUnit.SECONDS);
         //TODO 逻辑过期解决缓存击穿
 //        Shop shop = cacheClient.querywithLogicExpiration(CACHE_SHOP_KEY, id, Shop.class,
 //                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);

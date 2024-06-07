@@ -10,13 +10,16 @@ import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
+
 import com.hmdp.service.IUserService;
 import com.hmdp.constants.RedisConstants;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.SystemConstants;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import org.springframework.stereotype.Service;
@@ -26,10 +29,15 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.constants.RedisConstants.LOGIN_USER_KEY;
+import static com.hmdp.constants.RedisConstants.USER_SIGN_KEY;
 
 /**
  * <p>
@@ -45,6 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private RedisTemplate redisTemplate;
+
 
     @Override
     public Result sendCode(String phone, HttpSession session) {
@@ -233,5 +242,62 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             String tokenKey = LOGIN_USER_KEY+token;
             redisTemplate.expire(tokenKey,999999999,TimeUnit.MINUTES);
         }
+    }
+
+    @Override
+    public Result sign() {
+        Long userId = UserHolder.getUser().getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        String format_Time = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        int dayOfMonth = now.getDayOfMonth();
+
+        String key = USER_SIGN_KEY + userId + format_Time;
+
+        redisTemplate.opsForValue().setBit(key,dayOfMonth-1,true);
+
+
+        return Result.ok();
+    }
+
+    @Override
+    public Result signCount() {
+        Long userId = UserHolder.getUser().getId();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        String format_Time = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        int dayOfMonth = now.getDayOfMonth();
+
+        String key = USER_SIGN_KEY + userId + format_Time;
+        List<Long> results = redisTemplate
+                .opsForValue().bitField(key, BitFieldSubCommands.create()
+                        .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0));
+
+        if(results == null || results.size() == 0){
+            return Result.ok(0);
+        }
+        Long num = results.get(0);
+        if(num == null || num == 0){
+            return Result.ok(0);
+        }
+        int count = 0;
+        while (true){
+            if( (num & 1) == 0){
+                break;
+            }else {
+                count ++;
+            }
+            num >>>= 1;
+        }
+
+        return Result.ok(count);
+    }
+
+    @Override
+    public Result logout(String token) {
+        redisTemplate.delete(LOGIN_USER_KEY+token);
+        return Result.ok();
     }
 }

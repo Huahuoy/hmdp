@@ -67,16 +67,17 @@ public class UserController {
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(){
+    public Result logout(@RequestParam String token){
         // TODO 实现登出功能
-        return Result.fail("功能未完成");
+        return userService.logout(token);
     }
 
     @GetMapping("/me")
     public Result me(){
         // TODO 获取当前登录的用户并返回
-        UserDTO user = UserHolder.getUser();
-        return Result.ok(user);
+        Long userId = UserHolder.getUser().getId();
+
+        return Result.ok(userService.getById(userId));
     }
 
     @GetMapping("/info/{id}")
@@ -103,4 +104,13 @@ public class UserController {
         // 返回
         return Result.ok(userDTO);
     }
+    @PostMapping("/sign")
+    public Result sign(){
+        return userService.sign();
+    }
+    @GetMapping("/sign/count")
+    public Result signCount(){
+        return userService.signCount();
+    }
+
 }

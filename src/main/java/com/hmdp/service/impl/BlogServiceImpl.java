@@ -89,15 +89,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     @Override
     public Result saveBlog(Blog blog) {
-        UserDTO user = UserHolder.getUser();
-        blog.setUserId(user.getId());
+        Long user = UserHolder.getUser().getId();
+        blog.setUserId(user);
         // 保存探店博文
         boolean save = save(blog);
         if(!save){
             return Result.fail("发布笔记失败！请重试...");
         }
         long time = System.currentTimeMillis();
-        List<Follow> followUserId = followService.query().eq("follow_user_id", user.getId()).list();
+        List<Follow> followUserId = followService.query().eq("follow_user_id", user).list();
 
         for (Follow follow : followUserId) {
             String key = FEED_KEY + follow.getUserId();

@@ -1,14 +1,12 @@
 package com.hmdp.controller;
 
 
+import com.hmdp.dto.PayOrderDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -27,5 +25,10 @@ public class VoucherOrderController {
     public Result seckillVoucher(@PathVariable("id") Long voucherId) {
 
         return voucherOrderService.seckillVocher(voucherId);
+    }
+
+    @PostMapping("/pay")
+    public Result payVoucher(@RequestBody PayOrderDTO dto){
+        return voucherOrderService.pay(dto);
     }
 }

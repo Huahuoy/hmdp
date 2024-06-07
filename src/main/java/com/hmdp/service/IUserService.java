@@ -23,4 +23,10 @@ public interface IUserService extends IService<User> {
 
 
     void generateToken();
+
+    Result sign();
+
+    Result signCount();
+
+    Result logout(String token);
 }

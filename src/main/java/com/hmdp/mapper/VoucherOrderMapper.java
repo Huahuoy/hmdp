@@ -1,7 +1,9 @@
 package com.hmdp.mapper;
 
+import com.hmdp.dto.PayOrderDTO;
 import com.hmdp.entity.VoucherOrder;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * <p>
@@ -13,4 +15,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface VoucherOrderMapper extends BaseMapper<VoucherOrder> {
 
+
+
+    void markOrderPaySuccess(VoucherOrder dto);
 }

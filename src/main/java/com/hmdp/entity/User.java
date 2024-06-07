@@ -30,7 +30,7 @@ public class User implements Serializable {
      * 主键
      */
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private String id;
 
     /**
      * 手机号码
@@ -61,6 +61,9 @@ public class User implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+
+
 
 
 }
