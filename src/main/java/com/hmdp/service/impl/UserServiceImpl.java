@@ -8,14 +8,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
+import com.hmdp.entity.CodeEmail;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 
 import com.hmdp.service.IUserService;
 import com.hmdp.constants.RedisConstants;
-import com.hmdp.utils.RegexUtils;
-import com.hmdp.utils.SystemConstants;
-import com.hmdp.utils.UserHolder;
+import com.hmdp.utils.*;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.hmdp.constants.MqConstants.LOGIN_CODE_EXCHANGE;
+import static com.hmdp.constants.MqConstants.LOGIN_CODE_KEY;
 import static com.hmdp.constants.RedisConstants.LOGIN_USER_KEY;
 import static com.hmdp.constants.RedisConstants.USER_SIGN_KEY;
 
@@ -53,7 +54,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private RedisTemplate redisTemplate;
-
+    @Autowired
+    private RabbitMqHelper rabbitMqHelper;
 
     @Override
     public Result sendCode(String phone, HttpSession session) {
@@ -72,7 +74,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //5.发送验证码
         log.debug("发送验证码成功：{}",code);
 
-
+        CodeEmail codeEmail = new CodeEmail();
+        codeEmail.setTarget("1554427917@qq.com");
+        codeEmail.setCode(code);
+        rabbitMqHelper.sendMessage(LOGIN_CODE_EXCHANGE,LOGIN_CODE_KEY,codeEmail);
 
         return Result.ok();
     }

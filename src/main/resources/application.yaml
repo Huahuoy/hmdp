@@ -31,3 +31,19 @@ mybatis-plus:
 logging:
   level:
     com.hmdp: debug
+
+
+mail:
+  host: smtp.qq.com
+  smtp:
+    auth: true
+    ssl:
+      enable: true
+      socketFactory: sf
+  transport:
+    protocol: smtp
+
+  zhanghao: 167993231@qq.com
+  shouquanma: jmygiogbephvcadh
+
+

@@ -14,4 +14,8 @@ public class MqConstants {
     public static final String DELAY_EXCHANGE_NAME = "pay.delay.direct";
     public static final String DELAY_ORDER_QUEUE_NAME = "pay.delay.queue";
     public static final String DELAY_ORDER_KEY = "delay.order.pay";
+
+    public static final String LOGIN_CODE_KEY = "login.code.key";
+    public static final String LOGIN_CODE_QUEUE = "login.code.queue";
+    public static final String LOGIN_CODE_EXCHANGE = "login.code.direct";
 }
