@@ -33,17 +33,10 @@ logging:
     com.hmdp: debug
 
 
-mail:
-  host: smtp.qq.com
-  smtp:
-    auth: true
-    ssl:
-      enable: true
-      socketFactory: sf
-  transport:
-    protocol: smtp
-
-  zhanghao: 167993231@qq.com
-  shouquanma: jmygiogbephvcadh
-
+minio:
+  access-key: minio
+  bucket: hmdp
+  endpoint: http://192.168.1.111:9000
+  secret-key: minio123
+  read-path: http://192.168.1.111:9000
 

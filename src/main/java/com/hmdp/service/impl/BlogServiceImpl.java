@@ -99,6 +99,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         long time = System.currentTimeMillis();
         List<Follow> followUserId = followService.query().eq("follow_user_id", user).list();
 
+
+        //feed流推送
         for (Follow follow : followUserId) {
             String key = FEED_KEY + follow.getUserId();
             redisTemplate.opsForZSet().add(key,blog.getId().toString(),time);
