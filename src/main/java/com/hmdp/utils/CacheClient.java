@@ -24,6 +24,7 @@ public class CacheClient {
     @Autowired
     private final StringRedisTemplate redisTemplate;
 
+
     private final static ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public CacheClient(StringRedisTemplate redisTemplate) {
@@ -49,8 +50,8 @@ public class CacheClient {
 
     public <R,ID> R querywithPassThrough(String keyPrefix, ID id, Class<R> type,
                                          Function<ID,R> function,Long time, TimeUnit unit){
-
         String key = keyPrefix + id;
+
 
         String value = redisTemplate.opsForValue().get(key);
 
@@ -73,6 +74,29 @@ public class CacheClient {
                 time,unit);
 
         return r;
+//        String key = keyPrefix + id;
+//
+//        String value = redisTemplate.opsForValue().get(key);
+//
+//        if(StrUtil.isNotBlank(value)){
+//            log.debug("从redis中拿到数据");
+//            return JSONUtil.toBean(value,type);
+//        }
+//        if(value != null){ //空字符也是数据 如果走到这一步 说明 从redis中拿到的就是之前保存过的null字符串
+//            return null;
+//        }
+//        R r = function.apply(id);
+//
+//        if(r == null){
+//            log.debug("缓存穿透...");
+//            redisTemplate.opsForValue().set(key,"",
+//                    time,unit);
+//            return null;
+//        }
+//        redisTemplate.opsForValue().set(key,JSONUtil.toJsonStr(r),
+//                time,unit);
+//
+//        return r;
 
     }
 

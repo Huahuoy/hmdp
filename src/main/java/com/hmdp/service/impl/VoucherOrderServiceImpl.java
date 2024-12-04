@@ -2,6 +2,7 @@ package com.hmdp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.hmdp.controller.PayController;
 import com.hmdp.dto.PayOrderDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.*;
@@ -43,7 +44,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Autowired
     private ISeckillVoucherService seckillVoucherService;
-
+    @Autowired
+    private PayController payController;
     @Autowired
     private IVoucherService voucherService;
 
@@ -120,23 +122,37 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if(order.getStatus() != 1){
             return Result.fail("订单状态有误");
         }
-        if(dto.getPayType() != 1){
-            return Result.fail("目前仅支持余额支付");
+        if(dto.getPayType() != 1 && dto.getPayType() != 2){
+            return Result.fail("支付方式有误");
         }
-        Pocket pocket = pocketMapper.getOnePocket(userId);
+        if(dto.getPayType() == 1) {
+            Pocket pocket = pocketMapper.getOnePocket(userId);
 
-        if(pocket == null){
-            return Result.fail("钱包信息错误");
+            if (pocket == null) {
+                return Result.fail("钱包信息错误");
+            }
+            if (pocket.getCheck() < voucher.getPayValue()) {
+                return Result.fail("余额不足");
+            }
+
+            pocketMapper.pay(userId, voucher.getPayValue());
+
+            //异步通知修改订单状态
+            rabbitMqHelper.sendMessageWithConfirm(PAY_ORDER_EXCHANGE, PAY_ORDER_KEY, dto, 5);
+
+
+        }else {//支付宝支付
+            AliPay aliPay = new AliPay();
+            aliPay.setTotalAmount(voucher.getPayValue());
+            aliPay.setSubject(voucher.getTitle());
+            aliPay.setTraceNo(String.valueOf(dto.getId()));
+            try {
+                payController.pay(aliPay);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-        if(pocket.getCheck() < voucher.getPayValue()){
-            return Result.fail("余额不足");
-        }
 
-        pocketMapper.pay(userId,voucher.getPayValue());
-
-        //异步通知修改订单状态
-
-        rabbitMqHelper.sendMessageWithConfirm(PAY_ORDER_EXCHANGE,PAY_ORDER_KEY,dto,5);
 
         return Result.ok();
 

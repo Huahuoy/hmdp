@@ -1,14 +1,22 @@
 package com.hmdp.service.impl;
 
+import cn.hutool.bloomfilter.BloomFilterUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.Query;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hmdp.config.RedisConfig;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Shop;
+import com.hmdp.entity.User;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hmdp.utils.CacheClient;
-import com.hmdp.utils.SystemConstants;
+import com.hmdp.utils.*;
+import org.checkerframework.checker.units.qual.A;
+import org.redisson.api.RBloomFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -18,11 +26,15 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.stereotype.Service;
+import org.testng.annotations.Test;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.hmdp.constants.RedisConstants.*;
+
 
 /**
  * <p>
@@ -39,23 +51,89 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     private CacheClient cacheClient;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private RedisConfig redisConfig;
+    private Integer limitHistory = 500;
+
+    @Autowired
+    private RBloomFilterUtils<String> bloomFilterUtil;
+
+    @PostConstruct
+    public void initAfterBean(){
+        List<Shop> shopList = this.queryShopInit();
+        RBloomFilter<String> bloomFilter = bloomFilterUtil.create("shop", 1000L, 0.03);
+        for (Shop shop : shopList) {
+            bloomFilter.add(String.valueOf(shop.getId()));
+            String key = CACHE_SHOP_KEY + shop.getId();
+            redisTemplate.opsForValue().set(key,
+                    JSONUtil.toJsonStr(shop),CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        }
+    }
+
     @Override
     public Result getByIdWithCache(Long id) {
-        //TODO 缓存穿透
+        RBloomFilter<String> bloomFilter = redisConfig.redissonClient().getBloomFilter("shop");
+        boolean isContain = bloomFilter.contains(String.valueOf(id));
+        if(!isContain) {
+            return Result.fail("店铺不存在");
+        }
         Shop shop = cacheClient.querywithPassThrough(CACHE_SHOP_KEY, id, Shop.class,
                 this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
 
-        //TODO 互斥锁解决缓存击穿
-//        Shop shop = cacheClient.querywithMutex(CACHE_SHOP_KEY, id, Shop.class,
-//                this::getById, CACHE_SHOP_TTL, TimeUnit.SECONDS);
-        //TODO 逻辑过期解决缓存击穿
-//        Shop shop = cacheClient.querywithLogicExpiration(CACHE_SHOP_KEY, id, Shop.class,
-//                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
         if(shop == null){
             return Result.fail("店铺不存在");
         }
+
+        UserDTO user = UserHolder.getUser();
+        if(user == null){
+            return Result.ok(shop);
+        }
+        //按时间的历史浏览功能 key为前缀+用户id value为商铺id  socre 为时间戳
+        String key = HISTORY_KEY + user.getId();
+        Double score = redisTemplate.opsForZSet().score(key, String.valueOf(id));
+        if(score == null){
+            redisTemplate.opsForZSet().add(key, String.valueOf(id),System.currentTimeMillis());
+        }else {
+            redisTemplate.opsForZSet().remove(key,String.valueOf(id));
+        }
+        Long currentHistory = redisTemplate.opsForZSet().zCard(key);
+        if(currentHistory > limitHistory){
+            redisTemplate.opsForZSet().removeRange(key,0,currentHistory-limitHistory-1);
+        }
         return Result.ok(shop);
     }
+
+//        //TODO 缓存穿透
+//        Shop shop = cacheClient.querywithPassThrough(CACHE_SHOP_KEY, id, Shop.class,
+//                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
+//
+//        //TODO 互斥锁解决缓存击穿
+////        Shop shop = cacheClient.querywithMutex(CACHE_SHOP_KEY, id, Shop.class,
+////                this::getById, CACHE_SHOP_TTL, TimeUnit.SECONDS);
+//        //TODO 逻辑过期解决缓存击穿
+////        Shop shop = cacheClient.querywithLogicExpiration(CACHE_SHOP_KEY, id, Shop.class,
+////                this::getById, CACHE_NULL_TTL, TimeUnit.SECONDS);
+//        if(shop == null){
+//            return Result.fail("店铺不存在");
+//        }
+//        UserDTO user = UserHolder.getUser();
+//        if(user == null){
+//            return Result.ok(shop);
+//        }
+//        //按时间的历史浏览功能 key为前缀+用户id value为商铺id  socre 为时间戳
+//        String key = HISTORY_KEY + user.getId();
+//        Double score = redisTemplate.opsForZSet().score(key, String.valueOf(id));
+//        if(score == null){
+//            redisTemplate.opsForZSet().add(key, String.valueOf(id),System.currentTimeMillis());
+//        }else {
+//            redisTemplate.opsForZSet().remove(key,String.valueOf(id));
+//        }
+//        Long currentHistory = redisTemplate.opsForZSet().zCard(key);
+//        if(currentHistory > limitHistory){
+//            redisTemplate.opsForZSet().removeRange(key,0,currentHistory-limitHistory-1);
+//        }
+//        return Result.ok(shop);
+//    }
 
     @Override
     public Result queryShopByType(Integer typeId, Integer current, Double x, Double y) {
@@ -109,4 +187,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         return Result.ok(shops);
 
     }
+
+    @Override
+    public List<Shop> queryShopInit() {
+        return query().list();
+    }
+
 }

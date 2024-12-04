@@ -23,7 +23,7 @@ public class MvcConfig implements WebMvcConfigurer {
                 "/shop-type/**",
                 "/upload/**",
                 "/voucher/**"
-        ).order(1);
+        ).order(1).excludePathPatterns("/alipay/**");
 
     }
 }

@@ -73,6 +73,7 @@ public class MinIOFileStorageService implements FileStorageService {
             urlPath.append(separator+minIOConfigProperties.getBucket());
             urlPath.append(separator);
             urlPath.append(filePath);
+            log.info("文件上传路径：{}",urlPath.toString());
             return urlPath.toString();
         }catch (Exception ex){
             log.error("minio put file error.",ex);

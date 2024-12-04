@@ -1,0 +1,51 @@
+server:
+  port: 9527
+spring:
+  application:
+    name: hmdp
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://47.113.96.100:3306/hmdp?useSSL=false&serverTimezone=UTC
+    username: hmdp
+    password: yyh010206
+  redis:
+    host: 47.113.96.100
+    port: 6379
+    password: yyh010206
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  rabbitmq:
+    host: 47.113.96.100 # 你的虚拟机IP
+    port: 5672 # 端口
+    virtual-host: /hmdp # 虚拟主机
+    username: test # 用户名
+    password: yyh010206 # 密码
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity # 别名扫描包
+logging:
+  level:
+    com.hmdp: debug
+
+
+minio:
+  access-key: minionima
+  bucket: hdmp
+  endpoint: http://47.113.96.100:9000
+  secret-key: yyh010206
+  read-path: http://47.113.96.100:9000
+alipay:
+  easy:
+    protocol: https
+    gatewayHost: openapi-sandbox.dl.alipaydev.com
+    signType: RSA2
+    appId: 9021000139635667
+    merchantPrivateKey: MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDkc9dOVMzzG57gZJGHUtaG9fjV/+tXgL+FNdUyrfWFNB1bN8RYKqsYIFcvvBjBSGZgm1PTvLxOcGyUyQR5c5IX76Ztf3lifP1ou2TqmCpEvH4bRSZXDtP87z7rS9H0K8MQsE/f7px98DROTWmCPZH7gXgU9iFm8PchQ+83DZcMzWayf1Qlb1HdJNsKU8JlSCxTG9Id8q0ilbGhrRAJdZyaQ5eeNpprHlQWRS4yrg4tLR9agEMP0QX8wO/PZzlCfDSZ5V1iL9LY+aJL0uW1M/eWjTPPxRkgYyYDeM+4SAbPb2e3zqIMmsmT6VzmIba4f6O3YzGbZA/8OgM/WbJutj4nAgMBAAECggEBAKUjj8nRxu0dVDWEvSYDHYwlliCrhGWWbdtPVLPzx/zn9SiRIV9SSKeCCUQ6RfLB8S94WJpAXiadYgATZyacAklHNRkGAqrNCyl//K0QHc3eK5Ju5A4ea+L01pikEDrev3z61mJbS8hFsKnBj7lT5IjXyAPu/6o4GYx0XSGAs2XOXuyeG4MQ31nucN9cbE3L5WKKMgoVp47JmhEcLyG4PaBo6eANic262sRUCXy/GcnIMKPz6VVJbvAIsfnUBNFMuAUF1WFpnhOtYPmhs+2puWboDKCSKDtkLCNkGZuIX5imFLYleyEPhxiPVu16usKC0J78vAeWR085VALixz8KmTECgYEA91Br0D7zDuEUGjLFV3T/DFAWWAio/pEaXLf8B3Nse7HNj8N6J+T22/Th4MKBY2XDqivW1+m4Sa5r/qIAa9GaBq3jhd/JAqoDvBZQszBYx9U7uCz+W0JOEuCiUoENTqEgn+KGWMuelTkJZeRVGKUF8sd9Kq54kKVmeec9RrGt6iUCgYEA7HnWK6ZZ1k9JA23GcjuJugHVtwPVzfkLfWe3wSt8nIhpLct1ExuIkrBsH1xvxMnB32CL+L5ktj7sEJ/rSiHRR6rDLVY0MW8mYPIWRl18ZeMYVbVkxCu42FhSzcGOYAdIfnhFXzvOBdEhIzdweG/v0rZD16w+10XKQcOhuKV5B1sCgYBAhpgKllH+QNVo3HRGlDzzLnYV8/R7rsotBMfZ/dCBGWvjpYHapM+Ppf3FEZqGn4eEf7mnTdCKUNrWbdgkSWShd38Ub8XXTxp4WW4mwmd3g/f33q1ijBMos7lGQ2uAZ2PGs2iQBFhU4LPGBOP68RtzM39BwpGsU6tABQgkyLjyjQKBgFNM/+LUcKULvN6WVud6jaOWbeBQW4p5BlEgrhw/41+ItfRJzW3zrwJtX0kU2NJrd/3mFqiC+RsxwxqAGvQ8QWqLfsGDslMPomdYH/ydheqmOrZGdb6c4DplspWEb1Dof+L9HwLTIFnwN0oeh2IFnGePiQp6RJC0pvDPpzJSJ/YtAoGAWmLWegZsvK4qWLjMvlQPclCvAuShlhH5kQU85BzR1s8xj4MUKL0M7OAAoCk68p+qQbphVtRepetOH9pGGr0Pg91CDBkj796YrGHxpgcVTnyVNM6r+tYbFa8NXSFKkiABPvZZYara3+5BHkI7uFHcXTyp7LGYVs/J2uFG6FLH5sc=
+    alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgpjVvAoqsz5i6zKOJQDYz/YTmuMtiWoT6mjWkf8AeV32LzKxkRhnz1IkA45VgmvVnXPHd+U24WhoH3b4eS7n+MqkUoz/9jgS60TZqVzg4gVn4NlD3C0JvHiMNHAhLMR6+lw6F6DPFUf76tIiiZ7mxFNAuhJLxLdrbCZVYgUX9dCdM0F4QIN8ApMSkANTexMHTqD3EsGLz29wWlGpgCMCoCUAhwayMalu7BJo+nph3RezcNFeUC7yebFTuuGnrvEzKLaoRFoSOngzFbMuOHg/zZji7lZBdvw2i8dw8+zQMiw8Sjq4Qa0garKi8yfChw22gGnpynxa8MxWvavS6rBrZwIDAQAB
+    notifyUrl: http://428549a4.r23.cpolar.top/alipay/notify
+

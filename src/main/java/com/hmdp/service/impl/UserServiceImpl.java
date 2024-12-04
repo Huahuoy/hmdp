@@ -60,9 +60,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result sendCode(String phone, HttpSession session) {
         //1.校验手机号
-        if(RegexUtils.isPhoneInvalid(phone)){
+        if(RegexUtils.isEmailInvalid(phone)){
             //2.不符合返回错误信息
-            return Result.fail("请输入正确的手机号码");
+            return Result.fail("请输入正确的邮箱");
         }
         //3.符合 生成验证码
         String code = RandomUtil.randomNumbers(6);
@@ -75,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         log.debug("发送验证码成功：{}",code);
 
         CodeEmail codeEmail = new CodeEmail();
-        codeEmail.setTarget("1554427917@qq.com");
+        codeEmail.setTarget(phone);
         codeEmail.setCode(code);
         rabbitMqHelper.sendMessage(LOGIN_CODE_EXCHANGE,LOGIN_CODE_KEY,codeEmail);
 
@@ -85,11 +85,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
         String phone = loginForm.getPhone();
-        String thisCode = (String) redisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + phone);
+        log.info("phone:{}",phone);
+        String email = loginForm.getEmail();
+        String thisCode = (String) redisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + email);
         if(RegexUtils.isPhoneInvalid(phone)){
             return Result.fail("请输入正确的手机号");
         }
         String code = loginForm.getCode();
+        log.info("code:{}",code);
         if(thisCode == null || !thisCode.equals(code)){
             return Result.fail("验证码错误");
         }
